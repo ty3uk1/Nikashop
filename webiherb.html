@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NOW Shop — Односторінковий магазин</title>
+<style>
+:root{
+  --bg:#f6fbf6;
+  --card:#ffffff;
+  --accent:#2f8a44;
+  --accent-dark:#1f5e2f;
+  --muted:#6b6b6b;
+  --max-width:1200px;
+  --radius:12px;
+  --glass: rgba(255,255,255,0.7);
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#f6fbf6 0%, #f0faf0 100%);
+  color:#222; -webkit-font-smoothing:antialiased;
+}
+.container{ max-width:var(--max-width); margin:18px auto; padding:16px; }
+
+/* Header */
+.header{ display:flex; gap:14px; align-items:center; }
+.logo{
+  width:64px;height:64px;border-radius:12px;
+  background:linear-gradient(135deg,#dff5df,#baf0c0);
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent-dark);
+  box-shadow:0 8px 28px rgba(47,138,68,0.08);
+}
+.header h1{ margin:0;font-size:20px; }
+.header p{ margin:0;color:var(--muted); font-size:14px; }
+
+/* Controls */
+.controls{ display:flex; gap:10px; align-items:center; margin-top:12px; justify-content:space-between; flex-wrap:wrap; }
+.controls .left{ display:flex; gap:10px; align-items:center; }
+.search{ padding:10px 12px; border-radius:10px; border:1px solid #e7efe7; width:260px; background:white; }
+.btn{ padding:10px 12px; border-radius:10px; border:none; background:var(--accent); color:white; font-weight:700; cursor:pointer; }
+.btn.ghost{ background:transparent; border:1px solid #e4efe4; color:var(--accent-dark); }
+
+/* Grid */
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-top:16px; }
+.card{ background:var(--card); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; box-shadow: 0 8px 28px rgba(0,0,0,0.04); }
+.imgwrap{ height:180px; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#fff,#f7fff7); }
+.imgwrap img{ max-width:100%; max-height:100%; object-fit:contain; display:block; }
+.sku{ font-size:12px; color:var(--muted); }
+.title{ font-size:15px; font-weight:700; color:#0d2b17; }
+.desc{ font-size:13px; color:#222; line-height:1.3; max-height:68px; overflow:hidden; }
+.priceRow{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:auto; }
+.price{ font-weight:800; color:var(--accent-dark); font-size:16px; }
+
+/* Footer */
+.footer{ margin-top:22px; text-align:center; color:var(--muted); font-size:13px; }
+
+/* Popup */
+.overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); z-index:999; padding:16px; }
+.modal{ width:100%; max-width:640px; border-radius:12px; background:var(--card); padding:18px; box-shadow:0 30px 80px rgba(0,0,0,0.35); }
+.modal h3{ margin:0 0 6px 0; }
+.field{ margin:8px 0; display:flex; flex-direction:column; gap:6px; }
+input[type="text"], input[type="tel"], select { padding:10px; border-radius:8px; border:1px solid #e6efe6; font-size:14px; }
+.row{ display:flex; gap:10px; }
+.row .col{ flex:1; }
+.small{ font-size:13px; color:var(--muted); }
+.order-summary{ background:#fbfffb; border:1px solid #e9f7ea; padding:10px; border-radius:8px; margin-top:8px; }
+
+/* Responsive tweaks */
+@media (max-width:700px){
+  .imgwrap{ height:150px; }
+  .search{ width:100%; }
+  .controls{ flex-direction:column; align-items:stretch; gap:8px; }
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">NOW</div>
+      <div>
+        <h1>NOW Shop — Натуральні добавки</h1>
+        <p>Швидка доставка по Україні • Товари з iHerb (приклади)</p>
+      </div>
+    </header>
+
+    <div class="controls">
+      <div class="left">
+        <input class="search" id="searchInput" placeholder="Пошук по назві або SKU... (наприклад NOW-01240)" />
+        <button class="btn ghost" onclick="resetFilters()">Скинути фільтр</button>
+      </div>
+      <div>
+        <button class="btn" onclick="openFormAtBottom()">Форма замовлення</button>
+        <button class="btn" onclick="downloadCSVAll()">Завантажити CSV (усі товари)</button>
+      </div>
+    </div>
+
+    <!-- Товари -->
+    <div class="grid" id="productsGrid"></div>
+
+    <div class="footer">
+      © <span id="year"></span> NOW Shop — редагуйте масив products у коді для додавання/оновлення товарів.
+    </div>
+  </div>
+
+  <!-- POPUP (замовлення) -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" id="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div>
+          <h3 id="modalTitle">Замовлення</h3>
+          <div class="small" id="modalSku">SKU: —</div>
+        </div>
+        <div>
+          <button class="btn ghost" onclick="closePopup()">Закрити</button>
+        </div>
+      </div>
+
+      <div id="productPreview" style="margin-top:10px;"></div>
+
+      <form id="orderForm" onsubmit="return submitOrder(event)">
+        <div class="field"><label>Ім'я</label><input type="text" id="custName" required placeholder="Ваше ім'я"></div>
+        <div class="field"><label>Телефон</label><input type="tel" id="custPhone" required placeholder="+380XXXXXXXXX"></div>
+
+        <div class="row">
+          <div class="col field">
+            <label>Доставка</label>
+            <select id="delivery" required>
+              <option value="">Виберіть</option>
+              <option>Нова Пошта</option>
+              <option>УкрПошта</option>
+              <option>Міст</option>
+              <option>Самовивіз</option>
+            </select>
+          </div>
+          <div class="col field">
+            <label>Оплата</label>
+            <select id="payment" required>
+              <option value="">Виберіть</option>
+              <option>100% передоплата</option>
+              <option>Післяплата (накладений платіж)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Кількість</label>
+          <input type="text" id="qty" value="1" required pattern="^[0-9]+$">
+        </div>
+
+        <div class="order-summary" id="orderSummary"></div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+          <button type="button" class="btn ghost" onclick="closePopup()">Скасувати</button>
+          <button type="submit" class="btn">Відправити замовлення</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+/*
+  ІНСТРУКЦІЯ:
+  - Щоб додати/змінити товари: знайди масив `products` нижче і редагуй/додавай об'єкти.
+  - Поля товару:
+    { sku, title, usdPrice, image, description, source }
+    - usdPrice: ціна в USD (число). Якщо вказано, сторінка автоматично по курсу перераховує в грн.
+    - image: URL зображення (краще використовувати прямий URL).
+    - source: посилання на iHerb (опціонально).
+  - Курс задається змінною `kurs`. Можна змінити на інший.
+  - Ціни в грн рахуємо: priceUAH = округлити_в_більшу_сторону_до_кратного_5(usdPrice * kurs)
+*/
+
+const kurs = 43.7; // автоматичний курс для перерахунку грн (зміни якщо треба)
+
+/* ====== МАСИВ ТОВАРІВ: заповнені товари (ті, що ми вже включили) ======
+   - Для товарів, де usdPrice = null -> показано "ціна за запитом".
+   - Я поставив usdPrice для позицій, які ми вже обробили. Інші залишені як шаблони.
+*/
+const products = [
+  {
+    sku: "NOW-01240",
+    title: "NOW Foods — Calcium Citrate, Pure Powder, 8 oz (227 g)",
+    usdPrice: 10.40,
+    image: "https://cloudinary.images-iherb.com/image/upload/f_auto,q_auto:eco/images/now/now01240/v/26.jpg",
+    description: "Чистий порошок цитрату кальцію для підтримки здоров'я кісток. Не містить глютену, підходить для вегетаріанців.",
+    source: "https://www.iherb.com/pr/now-foods-calcium-citrate-pure-powder-8-oz-227-g/481"
+  },
+  {
+    sku: "NOW-01230",
+    title: "NOW Foods — Calcium Citrate, 100 Tablets",
+    usdPrice: 11.63,
+    image: "https://cloudinary.images-iherb.com/image/upload/f_auto,q_auto:eco/images/now/now01230/v/8.jpg",
+    description: "Кальцій у формі цитрату з добавками для кращого засвоєння. Рекомендація: 2 таблетки на добу.",
+    source: "https://www.iherb.com/pr/now-foods-calcium-citrate-100-tablets/120064"
+  },
+  {
+    sku: "NOW-00471",
+    title: "NOW Foods — Biotin 5,000 mcg, 60 Veg Capsules",
+    usdPrice: 6.11,
+    image: "https://cloudinary.images-iherb.com/image/upload/f_auto,q_auto:eco/images/now/now00471/v/32.jpg",
+    description: "Високодозований біотин для підтримки здоров'я волосся, шкіри і нігтів. 1 капсула на добу.",
+    source: "https://www.iherb.com/pr/now-foods-biotin-5-000-mcg-60-veg-capsules/447"
+  },
+  {
+    sku: "NOW-00474",
+    title: "NOW Foods — Biotin 5,000 mcg, 120 Veg Capsules",
+    usdPrice: 9.43,
+    image: "https://s3.images-iherb.com/now/now00474.jpg",
+    description: "Біотин 5000 mcg у великій упаковці (120 капсул) — для тривалого курсу.",
+    source: "https://www.iherb.com/pr/now-foods-biotin-5-000-mcg-120-veg-capsules/3319"
+  },
+  {
+    sku: "NOW-00469",
+    title: "NOW Foods — Slippery Elm, 400 mg, 100 Veg Capsules",
+    usdPrice: null, // ціна не вказана відкрито — вставити вручну якщо потрібно
+    image: "https://s3.images-iherb.com/now/now00469.jpg",
+    description: "Slippery Elm — рослинна добавка для підтримки травлення. Підходить для вегетаріанців.",
+    source: "https://www.iherb.com/pr/now-foods-slippery-elm-400-mg-100-veg-capsules/796"
+  },
+  {
+    sku: "NOW-01294",
+    title: "NOW Foods — Magnesium Citrate, 120 Veg Capsules",
+    usdPrice: 12.24,
+    image: "https://s3.images-iherb.com/now/now01294.jpg",
+    description: "Магній цитрат для підтримки нервової та м'язової системи. Вегетаріанські капсули.",
+    source: ""
+  },
+  {
+    sku: "NOW-01290",
+    title: "NOW Foods — Magnesium Citrate, 200 mg, 100 Tablets",
+    usdPrice: 12.20,
+    image: "https://s3.images-iherb.com/now/now01290.jpg",
+    description: "Магній 200 mg — для підтримки м'язової функції. Приймати згідно інструкції.",
+    source: ""
+  },
+  {
+    sku: "NOW-01295",
+    title: "NOW Foods — Magnesium Caps, 400 mg, 180 Veg Capsules",
+    usdPrice: 13.50,
+    image: "https://s3.images-iherb.com/now/now01295.jpg",
+    description: "Магній, висока доза — для інтенсивного курсу. Вегетаріанські капсули.",
+    source: ""
+  },
+
+  // решта товарів (шаблони) — додай usdPrice (число) або залиш як null
+  { sku:"NOW-00369", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-00365", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-00372", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-00376", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-00378", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-00367", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-00377", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+
+  // додані SOR (шаблони) — постав usdPrice, image, description коли будуть
+  { sku:"SOR-38584", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"SOR-57445", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"SOR-04707", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"SOR-32183", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"SOR-04534", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"SOR-04365", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"SOR-04797", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"SOR-04560", title:"SOR — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+
+  // приклади ще кількох NOW (з твоїх списків) — шаблони
+  { sku:"NOW-00371", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-03255", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." },
+  { sku:"NOW-03257", title:"NOW — (додати назву)", usdPrice:null, image:"", description:"Опис..." }
+  // ... додай інші, скопіювавши формат вище
+];
+
+/* ====== УТИЛІТИ РОЗРАХУНКУ ЦІНИ ====== */
+function toUAHandRoundUp(usd, kursLocal){
+  // usd може бути number або null
+  if(usd === null || usd === undefined || isNaN(usd)) return null;
+  const raw = usd * kursLocal;
+  // округляємо в більшу сторону до кратного 5
+  const rounded = Math.ceil(raw / 5) * 5;
+  return rounded;
+}
+
+/* ====== РЕНДЕР ТОВАРІВ ====== */
+const grid = document.getElementById('productsGrid');
+function renderProducts(list = products){
+  grid.innerHTML = '';
+  list.forEach((p, idx) => {
+    const priceUAH = (p.usdPrice != null) ? toUAHandRoundUp(Number(p.usdPrice), kurs) : null;
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <div class="imgwrap">
+        ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}">` : `<div class="small">Фото відсутнє<br><span style="font-size:12px;color:var(--muted)">SKU ${p.sku}</span></div>`}
+      </div>
+      <div class="sku">SKU: ${p.sku}</div>
+      <div class="title">${escapeHtml(p.title)}</div>
+      <div class="desc">${p.description ? escapeHtml(p.description) : '<span class="small">Опис не додано</span>'}</div>
+      <div class="priceRow">
+        <div class="price">${priceUAH ? priceUAH + ' грн' : '<span class="small">ціна за запитом</span>'}</div>
+        <div><button class="btn" onclick="openPopup(${idx})">Купити</button></div>
+      </div>
+    `;
+    grid.appendChild(el);
+  });
+}
+renderProducts();
+
+/* ====== ПОШУК / ФІЛЬТРИ ====== */
+document.getElementById('searchInput').addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  if(!q){ renderProducts(); return; }
+  const filtered = products.filter(p => (p.sku && p.sku.toLowerCase().includes(q)) || (p.title && p.title.toLowerCase().includes(q)));
+  renderProducts(filtered);
+});
+function resetFilters(){ document.getElementById('searchInput').value = ''; renderProducts(); }
+
+/* ====== POPUP / ФОРМА ====== */
+const overlay = document.getElementById('overlay');
+let activeProduct = null;
+
+function openPopup(index){
+  activeProduct = products[index];
+  document.getElementById('modalTitle').textContent = `Замовлення: ${activeProduct.title}`;
+  document.getElementById('modalSku').textContent = `SKU: ${activeProduct.sku}`;
+  const priceUAH = (activeProduct.usdPrice != null) ? toUAHandRoundUp(Number(activeProduct.usdPrice), kurs) : null;
+  document.getElementById('productPreview').innerHTML = `
+    <div style="display:flex; gap:10px; align-items:center;">
+      <div style="width:82px; height:82px; border-radius:8px; overflow:hidden; background:#fff; display:flex; align-items:center; justify-content:center;">
+        ${activeProduct.image ? `<img src="${activeProduct.image}" style="max-width:100%; max-height:100%;">` : '<div class="small">Фото<br>відсутнє</div>'}
+      </div>
+      <div>
+        <div style="font-weight:700">${escapeHtml(activeProduct.title)}</div>
+        <div class="small">${priceUAH ? priceUAH+' грн' : 'ціна за запитом'}</div>
+        ${activeProduct.source ? `<div class="small" style="margin-top:6px;"><a href="${activeProduct.source}" target="_blank" rel="noopener">Джерело (iHerb)</a></div>` : ''}
+      </div>
+    </div>
+  `;
+  document.getElementById('qty').value = 1;
+  updateSummary();
+  overlay.style.display = 'flex';
+  overlay.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePopup(){
+  overlay.style.display = 'none';
+  overlay.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('qty').addEventListener('input', updateSummary);
+
+function updateSummary(){
+  if(!activeProduct) return;
+  const qty = parseInt(document.getElementById('qty').value || '1');
+  const priceUAH = (activeProduct.usdPrice != null) ? toUAHandRoundUp(Number(activeProduct.usdPrice), kurs) : null;
+  const total = priceUAH ? (priceUAH * qty) : null;
+  document.getElementById('orderSummary').innerHTML = `
+    <div><strong>Товар:</strong> ${escapeHtml(activeProduct.title)}</div>
+    <div><strong>SKU:</strong> ${activeProduct.sku}</div>
+    <div><strong>Кількість:</strong> ${qty}</div>
+    <div><strong>Ціна за 1 шт:</strong> ${priceUAH ? priceUAH + ' грн' : 'обговорюється'}</div>
+    <div style="margin-top:6px;"><strong>Всього:</strong> ${total ? total + ' грн' : 'обговорюється'}</div>
+  `;
+}
+
+/* ====== ВІДПРАВКА ЗАМОВЛЕННЯ (створення CSV локально) ====== */
+function submitOrder(e){
+  e.preventDefault();
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const delivery = document.getElementById('delivery').value;
+  const payment = document.getElementById('payment').value;
+  const qty = document.getElementById('qty').value.trim();
+  if(!name || !phone || !delivery || !payment || !qty){
+    alert('Будь ласка, заповніть всі поля форми.');
+    return false;
+  }
+  const priceUAH = (activeProduct.usdPrice != null) ? toUAHandRoundUp(Number(activeProduct.usdPrice), kurs) : '';
+  const order = {
+    date: new Date().toISOString(),
+    sku: activeProduct.sku,
+    title: activeProduct.title,
+    price_per_item_uah: priceUAH,
+    qty: qty,
+    total_uah: priceUAH ? (priceUAH * Number(qty)) : '',
+    name: name,
+    phone: phone,
+    delivery: delivery,
+    payment: payment
+  };
+  // збережемо CSV локально
+  const csv = toCSV([order]);
+  downloadBlob(csv, `order_${order.sku}_${Date.now()}.csv`, 'text/csv;charset=utf-8;');
+
+  alert('Дякуємо! Замовлення збережено локально (CSV). Ви також можете підключити відправку на сервер або інтеграцію в Telegram.');
+  closePopup();
+  return false;
+}
+
+/* ====== УТИЛІТИ: CSV, завантаження ====== */
+function toCSV(arr){
+  if(!arr || !arr.length) return '';
+  const keys = Object.keys(arr[0]);
+  const lines = [keys.join(',')];
+  arr.forEach(obj => {
+    const row = keys.map(k => '"' + String(obj[k] || '').replace(/"/g,'""') + '"').join(',');
+    lines.push(row);
+  });
+  return lines.join('\n');
+}
+function downloadBlob(content, filename, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// кнопка: завантажити CSV всіх товарів (корисно для імпорту)
+function downloadCSVAll(){
+  const rows = products.map(p => {
+    const priceUAH = (p.usdPrice != null) ? toUAHandRoundUp(Number(p.usdPrice), kurs) : '';
+    return {
+      sku: p.sku,
+      title: p.title,
+      usdPrice: p.usdPrice || '',
+      price_uah: priceUAH || '',
+      image: p.image || '',
+      description: p.description || '',
+      source: p.source || ''
+    };
+  });
+  const csv = toCSV(rows);
+  downloadBlob(csv, `products_all_${Date.now()}.csv`, 'text/csv;charset=utf-8;');
+}
+
+/* ====== ЗАГАЛЬНІ ====== */
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+document.getElementById('year').textContent = new Date().getFullYear();
+document.getElementById('overlay').addEventListener('click', e => { if(e.target === document.getElementById('overlay')) closePopup(); });
+
+// скрол до форми (внизу сторінки) — тут просто відкриває popup з порожнім товаром
+function openFormAtBottom(){ alert('Щоб зробити загальну форму, натисніть "Купити" на будь-якому товарі або додайте окрему форму внизу сторінки.'); }
+
+// закриття popup клавішею Escape
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closePopup(); });
+
+</script>
+</body>
+</html>
