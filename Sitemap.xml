@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Головна сторінка -->
   <url>
     <loc>https://ty3uk1.github.io/Nikashop/</loc>
     <lastmod>2025-10-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-  <url>
-    <loc>https://ty3uk1.github.io/Nikashop/#NOW-01240</loc>
-  </url>
-  <url>
-    <loc>https://ty3uk1.github.io/Nikashop/#NOW-00471</loc>
-  </url>
-  <url>
-    <loc>https://ty3uk1.github.io/Nikashop/#NOW-01230</loc>
-  </url>
+
+  <!-- Товари -->
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-01240</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-01230</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00471</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00474</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00469</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00479</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-01294</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-01290</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-01295</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00369</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00365</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00372</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00376</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00378</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00367</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://ty3uk1.github.io/Nikashop/#NOW-00377</loc><lastmod>2025-10-19</lastmod><priority>0.8</priority></url>
+
 </urlset>
