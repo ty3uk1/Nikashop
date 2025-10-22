@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ty3uk1.github.io/Nikashop/sitemap.xml
